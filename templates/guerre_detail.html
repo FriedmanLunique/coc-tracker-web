@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}GDC {{ war.date }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <a href="/guerres" class="back-link">← Retour</a>
+  <h1 class="page-title">⚔️ GDC du {{ war.date }}</h1>
+</div>
+
+<!-- Result Banner -->
+<div class="war-result-full {{ war.result }}">
+  <div class="war-result-icon">
+    {% if war.result == 'win' %}🏆{% elif war.result == 'lose' %}💀{% else %}🤝{% endif %}
+  </div>
+  <div class="war-result-text">
+    {{ 'VICTOIRE' if war.result=='win' else ('DÉFAITE' if war.result=='lose' else 'ÉGALITÉ') }}
+  </div>
+  <div class="war-score-display">
+    <div class="war-score-team">
+      <div class="wscore-name">{{ war.clanName }}</div>
+      <div class="wscore-stars">{{ war.clanStars }} ⭐</div>
+      <div class="wscore-pct">{{ war.clanPct }}%</div>
+    </div>
+    <div class="wscore-vs">VS</div>
+    <div class="war-score-team">
+      <div class="wscore-name">{{ war.enemyName }}</div>
+      <div class="wscore-stars">{{ war.enemyStars }} ⭐</div>
+      <div class="wscore-pct">{{ war.enemyPct }}%</div>
+    </div>
+  </div>
+  <div class="war-result-meta">{{ war.teamSize }}v{{ war.teamSize }}</div>
+</div>
+
+<!-- Stats rapides -->
+{% set all_members = members|list %}
+{% set participated = all_members|selectattr('participated','gt',0)|list|length %}
+{% set compliant_atks = all_members|sum(attribute='compliant') %}
+{% set infraction_atks = all_members|sum(attribute='infraction') %}
+{% set total_checkable = compliant_atks + infraction_atks %}
+
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-icon">⚔️</div>
+    <div class="kpi-value">{{ participated }}/{{ war.teamSize }}</div>
+    <div class="kpi-label">Ont attaqué</div>
+  </div>
+  <div class="kpi-card kpi-ok">
+    <div class="kpi-icon">✅</div>
+    <div class="kpi-value">{{ compliant_atks }}</div>
+    <div class="kpi-label">Attaques conformes</div>
+  </div>
+  <div class="kpi-card kpi-danger">
+    <div class="kpi-icon">❌</div>
+    <div class="kpi-value">{{ infraction_atks }}</div>
+    <div class="kpi-label">Infractions</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon">📊</div>
+    <div class="kpi-value">{{ ((compliant_atks / total_checkable * 100)|round|int) if total_checkable else 100 }}%</div>
+    <div class="kpi-label">Compliance</div>
+  </div>
+</div>
+
+<!-- Member attacks -->
+<div class="card">
+  <div class="card-header">📋 Détail des attaques</div>
+  {% for m in members %}
+  <div class="member-war-row {% if m.participated == 0 %}no-attack{% endif %}">
+    <div class="mwr-header">
+      <span class="mwr-pos">#{{ m.mapPosition }}</span>
+      <span class="mwr-name">{{ m.name }}</span>
+      <span class="mwr-atk-count">{{ m.participated }}/2 attaques</span>
+      {% if m.participated == 0 %}
+        <span class="mwr-badge na">Absent</span>
+      {% elif m.infraction > 0 %}
+        <span class="mwr-badge red">{{ m.infraction }} infraction{{ 's' if m.infraction > 1 }}</span>
+      {% else %}
+        <span class="mwr-badge green">✓ Conforme</span>
+      {% endif %}
+    </div>
+    {% if m.attacks %}
+    <div class="mwr-attacks">
+      {% for atk in m.attacks %}
+      <div class="atk-row {% if atk.na %}na{% elif atk.ok %}ok{% else %}bad{% endif %}">
+        <div class="atk-num">Atk {{ loop.index }}</div>
+        <div class="atk-stars">
+          {% for i in range(3) %}
+          <span class="star {% if i < atk.stars %}filled{% endif %}">★</span>
+          {% endfor %}
+        </div>
+        <div class="atk-target">→ {{ atk.defenderName }} <span class="atk-pos">#{{ atk.defenderPos }}</span></div>
+        <div class="atk-pct">{{ atk.pct }}%</div>
+        <div class="atk-status">
+          {% if atk.na %}
+            <span class="status-na">N/A</span>
+          {% elif atk.ok %}
+            <span class="status-ok">✓</span>
+          {% else %}
+            <span class="status-bad">✗ {{ atk.why }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="mwr-no-attacks">Aucune attaque effectuée</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

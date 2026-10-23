@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Membres{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">👥 Membres</h1>
+  <p class="page-subtitle">{{ members|length }} membres · Score sur {{ members[0].wars_window if members else 0 }} dernières GDC</p>
+</div>
+
+<div class="card">
+  <div class="table-filter">
+    <input type="text" id="searchInput" placeholder="🔍 Rechercher un membre..." oninput="filterTable()" class="search-input">
+    <div class="filter-btns">
+      <button class="filter-btn active" onclick="filterScore('all', this)">Tous</button>
+      <button class="filter-btn" onclick="filterScore('exclu', this)">🔴 Exclusion</button>
+      <button class="filter-btn" onclick="filterScore('watch', this)">🟡 Surveillance</button>
+      <button class="filter-btn" onclick="filterScore('ok', this)">✅ OK</button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="coc-table" id="membersTable">
+      <thead>
+        <tr>
+          <th>Pos.</th>
+          <th>Joueur</th>
+          <th>HDV</th>
+          <th>Rôle</th>
+          <th title="Roi Barbare">👑BK</th>
+          <th title="Reine Archère">🏹AQ</th>
+          <th title="Grand Sorcier">🔮GW</th>
+          <th title="Championne Royale">⚔️RC</th>
+          <th>Trophées</th>
+          <th>Compliance</th>
+          <th>Participation</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in members %}
+        <tr class="member-row" data-score="{{ m.score }}" data-name="{{ m.name|lower }}">
+          <td class="pos-cell">{{ loop.index }}</td>
+          <td class="name-cell">
+            <span class="player-name">{{ m.name }}</span>
+          </td>
+          <td class="th-cell">
+            <span class="th-badge th-{{ m.townHallLevel }}">{{ m.townHallLevel }}</span>
+          </td>
+          <td>
+            <span class="role-badge role-{{ m.role }}">{{ m.role|role_fr }}</span>
+          </td>
+          <td class="hero-cell">{{ m.heroes.get('Barbarian King', '–') }}</td>
+          <td class="hero-cell">{{ m.heroes.get('Archer Queen', '–') }}</td>
+          <td class="hero-cell">{{ m.heroes.get('Grand Warden', '–') }}</td>
+          <td class="hero-cell">{{ m.heroes.get('Royal Champion', '–') }}</td>
+          <td class="trophy-cell">🏆 {{ m.trophies }}</td>
+          <td>
+            <div class="mini-bar">
+              <div class="mini-bar-fill" style="width:{{ m.compliance }}%; background:{{ m.compliance|score_color }}"></div>
+            </div>
+            <span class="mini-val">{{ m.compliance }}%</span>
+          </td>
+          <td>
+            <div class="mini-bar">
+              <div class="mini-bar-fill" style="width:{{ m.participation }}%; background:{{ m.participation|score_color }}"></div>
+            </div>
+            <span class="mini-val">{{ m.participation }}%</span>
+          </td>
+          <td>
+            <span class="score-badge-lg" style="color: {{ m.score|score_color }}; border-color: {{ m.score|score_color }}">
+              {{ m.score }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.member-row').forEach(row => {
+    row.style.display = row.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+function filterScore(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.member-row').forEach(row => {
+    const s = parseInt(row.dataset.score);
+    const show = type === 'all' ||
+      (type === 'exclu' && s < 55) ||
+      (type === 'watch' && s >= 55 && s < 75) ||
+      (type === 'ok' && s >= 75);
+    row.style.display = show ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

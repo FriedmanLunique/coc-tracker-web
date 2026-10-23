@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Sanctions{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">⚠️ Sanctions</h1>
+  <p class="page-subtitle">Basé sur les {{ d.wars|length if d.wars else 0 }} dernières GDC · Seuils : exclusion &lt;55 · surveillance &lt;75</p>
+</div>
+
+<!-- Exclusion -->
+<div class="card card-danger">
+  <div class="card-header">🔴 À exclure (score &lt; 55)</div>
+  {% if d.sanctions.excluded %}
+  <div class="sanctions-grid">
+    {% for s in d.sanctions.excluded %}
+    <div class="sanction-card red">
+      <div class="sanction-card-name">{{ s.name }}</div>
+      <div class="sanction-card-score" style="color:#e74c3c">{{ s.score }}/100</div>
+      <div class="sanction-stats">
+        <div class="sanction-stat">
+          <span class="stat-label">Compliance</span>
+          <span class="stat-val">{{ s.compliance }}%</span>
+        </div>
+        <div class="sanction-stat">
+          <span class="stat-label">Participation</span>
+          <span class="stat-val">{{ s.participation }}%</span>
+        </div>
+      </div>
+      <div class="sanction-bar">
+        <div class="sanction-bar-fill" style="width:{{ s.score }}%; background:#e74c3c"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty-msg">✅ Aucun membre à exclure.</p>
+  {% endif %}
+</div>
+
+<!-- Surveillance -->
+<div class="card card-warn">
+  <div class="card-header">🟡 À surveiller (score 55–74)</div>
+  {% if d.sanctions.watched %}
+  <div class="sanctions-grid">
+    {% for s in d.sanctions.watched %}
+    <div class="sanction-card orange">
+      <div class="sanction-card-name">{{ s.name }}</div>
+      <div class="sanction-card-score" style="color:#f39c12">{{ s.score }}/100</div>
+      <div class="sanction-stats">
+        <div class="sanction-stat">
+          <span class="stat-label">Compliance</span>
+          <span class="stat-val">{{ s.compliance }}%</span>
+        </div>
+        <div class="sanction-stat">
+          <span class="stat-label">Participation</span>
+          <span class="stat-val">{{ s.participation }}%</span>
+        </div>
+      </div>
+      <div class="sanction-bar">
+        <div class="sanction-bar-fill" style="width:{{ s.score }}%; background:#f39c12"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty-msg">✅ Aucun membre en surveillance.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

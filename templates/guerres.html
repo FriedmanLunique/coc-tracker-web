@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Guerres{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">🗡️ Historique GDC</h1>
+  <p class="page-subtitle">{{ wars|length }} guerres analysées en détail</p>
+</div>
+
+{% if wars %}
+<div class="wars-list">
+  {% for w in wars %}
+  <a href="/guerre/{{ w.id }}" class="war-card {{ w.result }}">
+    <div class="war-card-result">
+      {% if w.result == 'win' %}🏆{% elif w.result == 'lose' %}💀{% else %}🤝{% endif %}
+      <span>{{ 'VICTOIRE' if w.result=='win' else ('DÉFAITE' if w.result=='lose' else 'ÉGALITÉ') }}</span>
+    </div>
+    <div class="war-card-info">
+      <div class="war-card-date">{{ w.date }}</div>
+      <div class="war-card-size">{{ w.teamSize }}v{{ w.teamSize }}</div>
+      <div class="war-card-enemy">vs {{ w.enemyName }}</div>
+    </div>
+    <div class="war-card-stars">
+      <div class="stars-row">
+        <span class="stars-clan">{{ w.clanStars }} ⭐</span>
+        <span class="stars-sep">–</span>
+        <span class="stars-enemy">⭐ {{ w.enemyStars }}</span>
+      </div>
+      <div class="pct-row">{{ w.clanPct }}% · {{ w.enemyPct }}%</div>
+    </div>
+    <div class="war-card-arrow">→</div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <p class="empty-msg">Aucune GDC analysée pour l'instant. Les guerres sont enregistrées automatiquement à leur fin.</p>
+</div>
+{% endif %}
+
+{% if warlog %}
+<div class="card" style="margin-top:2rem">
+  <div class="card-header">📜 Historique complet (résumé)</div>
+  <div class="table-wrapper">
+    <table class="coc-table">
+      <thead>
+        <tr><th>Date</th><th>Résultat</th><th>Taille</th><th>Adversaire</th><th>Étoiles</th></tr>
+      </thead>
+      <tbody>
+        {% for w in warlog %}
+        <tr>
+          <td>{{ w.date }}</td>
+          <td><span class="result-badge {{ w.result }}">
+            {{ 'Victoire' if w.result=='win' else ('Défaite' if w.result=='lose' else 'Égalité') }}
+          </span></td>
+          <td>{{ w.teamSize }}v{{ w.teamSize }}</td>
+          <td>{{ w.enemyName }}</td>
+          <td>{{ w.clanStars }} – {{ w.enemyStars }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

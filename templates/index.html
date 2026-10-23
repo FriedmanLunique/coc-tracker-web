@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">
+    {% if d.clan.badgeUrls %}
+    <img src="{{ d.clan.badgeUrls.get('small','') }}" alt="badge" class="clan-badge">
+    {% endif %}
+    {{ d.clan.name or 'La Whitelist' }}
+  </h1>
+  <p class="page-subtitle">Niveau {{ d.clan.clanLevel or '?' }} · {{ d.clan.members_count or '?' }}/50 membres · {{ d.clan.warWins or 0 }} victoires</p>
+</div>
+
+<!-- KPI Row -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-icon">👥</div>
+    <div class="kpi-value">{{ d.members|length }}</div>
+    <div class="kpi-label">Membres</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon">⚔️</div>
+    <div class="kpi-value">{{ d.wars|length }}</div>
+    <div class="kpi-label">GDC analysées</div>
+  </div>
+  <div class="kpi-card kpi-danger">
+    <div class="kpi-icon">🔴</div>
+    <div class="kpi-value">{{ d.sanctions.excluded|length }}</div>
+    <div class="kpi-label">À exclure</div>
+  </div>
+  <div class="kpi-card kpi-warn">
+    <div class="kpi-icon">🟡</div>
+    <div class="kpi-value">{{ d.sanctions.watched|length }}</div>
+    <div class="kpi-label">À surveiller</div>
+  </div>
+</div>
+
+<div class="grid-2">
+
+  <!-- Dernière GDC -->
+  <div class="card">
+    <div class="card-header">🗡️ Dernière GDC analysée</div>
+    {% if d.wars %}
+      {% set last = d.wars[-1] %}
+      <div class="war-result-banner {{ last.result }}">
+        {% if last.result == 'win' %}🏆 VICTOIRE{% elif last.result == 'lose' %}💀 DÉFAITE{% else %}🤝 ÉGALITÉ{% endif %}
+      </div>
+      <div class="war-summary">
+        <div class="war-team">
+          <div class="war-team-name">{{ last.clanName }}</div>
+          <div class="war-stars">{{ last.clanStars }} ⭐</div>
+          <div class="war-pct">{{ last.clanPct }}%</div>
+        </div>
+        <div class="war-vs">VS</div>
+        <div class="war-team">
+          <div class="war-team-name">{{ last.enemyName }}</div>
+          <div class="war-stars">{{ last.enemyStars }} ⭐</div>
+          <div class="war-pct">{{ last.enemyPct }}%</div>
+        </div>
+      </div>
+      <div class="war-meta">{{ last.teamSize }}v{{ last.teamSize }} · {{ last.date }}</div>
+      <a href="/guerre/{{ last.id }}" class="btn-gold">Voir le détail →</a>
+    {% else %}
+      <p class="empty-msg">Aucune GDC analysée pour le moment.</p>
+    {% endif %}
+  </div>
+
+  <!-- Sanctions rapides -->
+  <div class="card">
+    <div class="card-header">⚠️ Sanctions actives</div>
+    {% if d.sanctions.excluded %}
+    <div class="sanction-section">
+      <div class="sanction-title red">🔴 À exclure</div>
+      {% for s in d.sanctions.excluded[:5] %}
+      <div class="sanction-row">
+        <span class="sanction-name">{{ s.name }}</span>
+        <span class="score-badge red">{{ s.score }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if d.sanctions.watched %}
+    <div class="sanction-section">
+      <div class="sanction-title orange">🟡 À surveiller</div>
+      {% for s in d.sanctions.watched[:5] %}
+      <div class="sanction-row">
+        <span class="sanction-name">{{ s.name }}</span>
+        <span class="score-badge orange">{{ s.score }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if not d.sanctions.excluded and not d.sanctions.watched %}
+      <p class="empty-msg">✅ Aucune sanction active.</p>
+    {% endif %}
+    <a href="/sanctions" class="btn-outline">Voir toutes →</a>
+  </div>
+
+</div>
+
+<!-- Top/Bottom performers -->
+{% if d.members %}
+{% set members_sorted = d.members.values()|sort(attribute='score') %}
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">🏆 Meilleurs joueurs</div>
+    {% for m in members_sorted|list|reverse|list[:5] %}
+    <div class="perf-row">
+      <span class="perf-rank">{{ loop.index }}</span>
+      <span class="perf-name">{{ m.name }}</span>
+      <div class="score-ring" style="--score-color: {{ m.score|score_color }}">
+        <span class="score-ring-val">{{ m.score }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="card">
+    <div class="card-header">📉 À améliorer</div>
+    {% for m in members_sorted|list[:5] %}
+    <div class="perf-row">
+      <span class="perf-rank">{{ loop.index }}</span>
+      <span class="perf-name">{{ m.name }}</span>
+      <div class="score-ring" style="--score-color: {{ m.score|score_color }}">
+        <span class="score-ring-val">{{ m.score }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}La Whitelist{% endblock %} · Tracker CoC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="nav-brand">
+      <span class="brand-icon">⚔️</span>
+      <span class="brand-name">La Whitelist</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+        <span>🏰</span> Dashboard
+      </a></li>
+      <li><a href="/membres" class="nav-link {% if request.endpoint == 'membres' %}active{% endif %}">
+        <span>👥</span> Membres
+      </a></li>
+      <li><a href="/sanctions" class="nav-link {% if request.endpoint == 'sanctions' %}active{% endif %}">
+        <span>⚠️</span> Sanctions
+      </a></li>
+      <li><a href="/guerres" class="nav-link {% if request.endpoint in ('guerres','guerre_detail') %}active{% endif %}">
+        <span>🗡️</span> Guerres
+      </a></li>
+    </ul>
+    <div class="nav-actions">
+      <span class="update-time" id="updateTime">
+        {% if d.last_update %}Màj {{ d.last_update }}{% else %}Jamais mis à jour{% endif %}
+      </span>
+      <button class="btn-update" id="btnUpdate" onclick="triggerUpdate()">
+        <span id="updateIcon">↻</span> Actualiser
+      </button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    {% if d.error %}
+    <div class="alert-error">
+      ❌ Erreur API : {{ d.error }}
+    </div>
+    {% endif %}
+    {% if d.updating %}
+    <div class="alert-info">
+      ⏳ Mise à jour en cours...
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <span>La Whitelist #20VG8RGL0 · Tracker GDC v4.0</span>
+  </footer>
+
+  <script>
+    async function triggerUpdate() {
+      const btn = document.getElementById('btnUpdate');
+      const icon = document.getElementById('updateIcon');
+      btn.disabled = true;
+      icon.style.animation = 'spin 1s linear infinite';
+      await fetch('/api/update', {method:'POST'});
+      // Poll until done
+      const poll = setInterval(async () => {
+        const r = await fetch('/api/status');
+        const s = await r.json();
+        if (!s.updating) {
+          clearInterval(poll);
+          location.reload();
+        }
+      }, 2000);
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
